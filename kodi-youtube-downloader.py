@@ -1,8 +1,7 @@
+#!/usr/bin/env python 
 # YoutubeVideo Downloader fro Kodi V1.0
 # Downloads a YoutubeVideo andthe corresponding Image
 # Convert the Video from Mp4 to MKV and create a Kodi episode nfo file
-
-
 import os
 import xml.etree.cElementTree as ET
 import wget
