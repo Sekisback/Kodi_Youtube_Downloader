@@ -22,23 +22,24 @@ def get_input(x_name, x_session, x_episode):
     episode = input(f'Episode (default = {x_episode}): ')
     if episode == '': episode = (x_episode)
     prefix = (f"{name} - S{session}E{episode} - ")
-    return (prefix, vurl)
+    return (prefix, vurl, name)
 
 # Step 2 Get Video, Image and extract duration and publish date
 def get_video(vurl, path, prefix):
     yt = YouTube(vurl)
-    title = (prefix + (yt.title.split('|')[0]).strip().replace('.', '').replace('&', 'and').strip())
+    title = (prefix + (yt.title.split('|')[0]).strip().replace('.', '').replace('&', 'and').replace('"', '').strip())
     lenght = str(yt.length//60)
-    publish = yt.publish_date
-    air = publish.strftime('%Y-%m-%d')
+    air = yt.publish_date.strftime('%Y-%m-%d')
     stream = yt.streams.get_highest_resolution()
-    print('\n[+] Downloading ' + yt.title)
+    print('\n[+] Downloading Video ' + yt.title)
     stream.download(output_path=(path), filename=(title))
 
-    print('[+] Downloading Image')
+    
     image_url = yt.thumbnail_url
-    image_name = (title + '.jpg')
+    image_name = (f'{title}.jpg')
+    print(f'[+] Downloading Image {image_name}')
     wget.download(image_url, bar=None, out=(path + image_name))
+    print(f'[+] Rename to {title}')
     return(lenght, air)
 
 # Step 3 Convert Mp4 to MKV
@@ -46,9 +47,8 @@ def convert_video(path, prefix):
     print('[+] Converting MP4 to MKV')
     video = [video for video in os.listdir(path=path) if video.endswith('.mp4')]                
     video_in = repr(video[0])
-    video_out = str(video_in.replace('.mp4', '.mkv'))
-    prefix = repr(prefix)
-    os.system('ffmpeg -i {0} -c:v copy -c:a copy {1} > /dev/null 2>&1'.format(path+video_in, path+video_out))                                            # convert the Video without encoding
+    video_out = video_in.replace('.mp4', '.mkv')
+    os.system(f'ffmpeg -i {path+video_in} -c:v copy -c:a copy {path+video_out} > /dev/null 2>&1')                                            # convert the Video without encoding
     return(video_out[1:-5])
 
 # Step 4 Create xml.nfo File
@@ -64,13 +64,35 @@ def xml_output(path, video, lenght, air):
     runtime = ET.SubElement(episodedetails, "runtime")
     runtime.text = (lenght)
     thumb = ET.SubElement(episodedetails, "thumb")
-    thumb.text = (video + ".jpg")
+    thumb.text = (f'{video}.jpg')
+    
 
     indent(episodedetails)
 
     tree = ET.ElementTree(episodedetails)
-    tree.write((path+video+'.nfo'), xml_declaration=True, encoding='UTF-8', method='xml')
+    tree.write((f'{path}{video}.nfo'), xml_declaration=True, encoding='UTF-8', method='xml')
 
+# Step 4 Create tvshow.nfo File
+def tvshow_output(path, name, air):
+    print('[+] Creating NFO-File')
+    tvshow = ET.Element('tvshow')
+    title = ET.SubElement(tvshow, "title")
+    title.text = (name)
+    showtitle = ET.SubElement(tvshow, "showtitle")
+    showtitle.text = (name)
+    aired = ET.SubElement(tvshow, "aired")
+    aired.text = (air)
+    thumb = ET.SubElement(tvshow, "thumb")
+    thumb.text = (f'{name}.jpg')
+    fanart = ET.SubElement(tvshow, "fanart")
+    fanart.text = ()
+    fanartthumb = ET.SubElement(fanart, "thumb")
+    fanartthumb.text = (f'{name}.jpg')
+
+    indent(tvshow)
+
+    tree = ET.ElementTree(tvshow)
+    tree.write((f'{path}tvshow.nfo'), xml_declaration=True, encoding='UTF-8', method='xml')
 # xml helper to create pretty xml
 # it basically walks the tree and adds spaces
 # and newlines so the tree is printed in a nice way
@@ -91,8 +113,10 @@ def indent(elem, level=0):
 
 
 if __name__ == "__main__":
-    prefix, vurl = get_input(x_name, x_session, x_episode)
+    prefix, vurl, name = get_input(x_name, x_session, x_episode)
     lenght, air = get_video(vurl, path, prefix)
     video = convert_video(path, prefix)
     xml_output(path, video, lenght, air)
+    if input("Create tvshow.nfo [Y/N]: ") == ("y"):
+        tvshow_output(path, name, air)
     os.system('rm {0}*.mp4'.format(path))
