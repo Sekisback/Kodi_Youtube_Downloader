@@ -1,6 +1,6 @@
-#!/usr/bin/env python 
-# YoutubeVideo Downloader fro Kodi V1.0
-# Downloads a YoutubeVideo andthe corresponding Image
+#!/usr/bin/env python3 
+# YoutubeVideo Downloader for Kodi V1.0
+# Downloads a YoutubeVideo and the corresponding Image
 # Convert the Video from Mp4 to MKV and create a Kodi episode nfo file
 import os
 import xml.etree.cElementTree as ET
@@ -17,7 +17,7 @@ def get_input(x_name, x_session, x_episode):
     vurl = input('YouTube-URL: ')
     name = input(f'Serienname (default = {x_name}): ')
     if name == '': name = (x_name)
-    session = input(f'Staffel (default = {x_session}): ')
+    session = input(f"Staffel (default = {x_session}): ")
     if session == '': session = (x_session)
     episode = input(f'Episode (default = {x_episode}): ')
     if episode == '': episode = (x_episode)
