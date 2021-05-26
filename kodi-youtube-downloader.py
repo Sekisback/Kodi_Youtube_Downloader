@@ -1,4 +1,4 @@
-#!/usr/bin/env python3 
+# !/usr/bin/ python3 
 # YoutubeVideo Downloader for Kodi V1.0
 # Downloads a YoutubeVideo and the corresponding Image
 # Convert the Video from Mp4 to MKV and create a Kodi episode nfo file
@@ -27,7 +27,12 @@ def get_input(x_name, x_session, x_episode):
 # Step 2 Get Video, Image and extract duration and publish date
 def get_video(vurl, path, prefix):
     yt = YouTube(vurl)
-    title = (prefix + (yt.title.split('|')[0]).strip().replace('.', '').replace('&', 'and').replace('"', '').strip())
+    title = (prefix + (yt.title.split('|')[0]).strip()
+        .replace('.', '')                                          
+        .replace('&', 'and')
+        .replace('"', '')
+        .replace('®', '').strip())
+
     lenght = str(yt.length//60)
     air = yt.publish_date.strftime('%Y-%m-%d')
     stream = yt.streams.get_highest_resolution()
